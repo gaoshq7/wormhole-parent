@@ -44,5 +44,11 @@
             <groupId>io.github.gaoshq7</groupId>
             <artifactId>w-executor</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
     </dependencies>
 </project>

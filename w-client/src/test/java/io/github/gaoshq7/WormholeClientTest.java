@@ -6,6 +6,8 @@ import io.github.gaoshq7.wormhole.WormholeFactory;
 import io.github.gaoshq7.wormhole.protocol.ScriptExecutor;
 import org.junit.Test;
 
+import java.util.HashMap;
+
 /**
  * Project : wormhole-parent
  * Class : io.github.gaoshq7.WormholeClientTest
@@ -20,7 +22,9 @@ public class WormholeClientTest {
     public void test01() throws Exception{
         WormholeFactory<ScriptExecutor> factory = Wormhole.getFactory("script");
         ScriptExecutor executor = factory.create(new Connection("127.0.0.1", 8080));
-        Integer exitCode = executor.execute("test.sh", null, "name^231");
+        HashMap<String, Object> argMap = new HashMap<>();
+        argMap.put("name", "测试");
+        Integer exitCode = executor.execute("test.sh", null, argMap);
         System.out.println(exitCode);
     }
 

@@ -5,12 +5,14 @@ import cn.hutool.json.JSONUtil;
 import handler.SimpleWsReceiver;
 import io.github.gaoshq7.wormhole.CommandHandler;
 import io.github.gaoshq7.wormhole.protocol.ScriptExecutor;
+import okhttp3.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Project : wormhole-parent
@@ -32,7 +34,7 @@ public class ScriptExecutorImpl implements ScriptExecutor {
     }
 
     @Override
-    public Integer execute(String script, CommandHandler handler, String... args) {
+    public Integer execute(String script, CommandHandler handler, Map<String, Object> args) {
         // 执行start接口
         String executorId;
         try {
@@ -57,63 +59,33 @@ public class ScriptExecutorImpl implements ScriptExecutor {
      * @Author : syu
      * @Date : 2025/10/17
      */
-    private String getExecutorId(String script, String... args) throws Exception {
-        String executorId;
-        try {
-            String boundary = "----WebKitFormBoundary" + System.currentTimeMillis();
-            String spec = "http://" + hostname + ":" + port + "/executions/start";
-            URL url = new URL(spec);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-            conn.setDoOutput(true);
-
-            try (OutputStream outputStream = conn.getOutputStream()) {
-                PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), true);
-                // 发送普通字段
-                writer.append("--").append(boundary).append("\r\n");
-                writer.append("Content-Disposition: form-data; name=\"__script_name\"\r\n\r\n");
-                writer.append(script).append("\r\n");
-                // 发送 args 数组
-                for (String arg : args) {
-                    String[] split = arg.split("\\^");
-                    String key = split[0];
-                    String value = split[1];
-                    writer.append("--").append(boundary).append("\r\n");
-                    writer.append("Content-Disposition: form-data; name=\"").append(key).append("\"\r\n\r\n");
-                    writer.append(value).append("\r\n");
-                }
-                writer.flush();
+    private String getExecutorId(String script, Map<String, Object> args) throws Exception {
+        String url = "http://" + hostname + ":" + port + "/executions/start";
+        // 创建 OkHttpClient
+        OkHttpClient client = new OkHttpClient();
+        MultipartBody.Builder builder = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("__script_name", script);
+        args.forEach((key, value) -> {
+            builder.addFormDataPart(key, value.toString());
+        });
+        RequestBody requestBody = builder.build();
+        // 构造请求
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
+        // 执行请求并处理响应
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errMsg = response.body() != null ? response.body().string() : "Unknown error";
+                throw new RuntimeException(errMsg);
             }
-            int responseCode = conn.getResponseCode();
-            if (responseCode != 200) {
-                InputStream stream = conn.getErrorStream();
-                StringBuilder response = new StringBuilder();
-                if (stream != null) {
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            response.append(line).append('\n');
-                        }
-                    }
-                }
-                throw new RuntimeException(response.toString());
+            if (response.body() == null) {
+                throw new IOException("响应体为空");
             }
-            try (BufferedReader in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()))) {
-                String line;
-                StringBuilder response = new StringBuilder();
-                while ((line = in.readLine()) != null) {
-                    response.append(line);
-                }
-                executorId = response.toString();
-            }
-            conn.disconnect();
-        }catch (Exception e) {
-            throw new IOException(e.getMessage());
+            return response.body().string().trim();
         }
-        return executorId;
     }
 
     /**
