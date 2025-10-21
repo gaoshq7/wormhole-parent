@@ -1,4 +1,4 @@
-package handler;
+package io.github.gaoshq7.handler;
 
 import io.github.gaoshq7.wormhole.CommandHandler;
 import org.java_websocket.client.WebSocketClient;
