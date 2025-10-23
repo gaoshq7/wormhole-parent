@@ -1,11 +1,10 @@
 package io.github.gaoshq7.handler;
 
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class AuditHttpClient {
@@ -19,9 +18,12 @@ public class AuditHttpClient {
 
     private final int port;
 
-    public AuditHttpClient(String hostname, int port) {
+    private final String token;
+
+    public AuditHttpClient(String hostname, int port, String token) {
         this.hostname = hostname;
         this.port = port;
+        this.token = token;
     }
 
     /**
@@ -33,23 +35,24 @@ public class AuditHttpClient {
      */
     public String executeLog(Integer executorId){
         String result;
-        try {
-            String spec = "http://" + hostname + ":" + port + "/history/execution_log/long/" + executorId;
-            URL url = new URL(spec);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setDoOutput(true);
-            try (BufferedReader in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()))) {
-                String line;
-                StringBuilder response = new StringBuilder();
-                while ((line = in.readLine()) != null) {
-                    response.append(line);
-                }
-                result = response.toString();
+        String url = "http://" + hostname + ":" + port + "/history/execution_log/long/" + executorId;
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Basic " + token)
+                .get()
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errMsg = response.body() != null ? response.body().string() : "Unknown error";
+                throw new RuntimeException("请求日志失败: " + response.code() + " - " + errMsg);
             }
-        }catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            if (response.body() == null) {
+                throw new IOException("响应体为空");
+            }
+            // 读取响应内容并解析
+            result = response.body().string();
+        } catch (IOException e) {
+            throw new RuntimeException("executeLog 异常: " + e.getMessage(), e);
         }
         return result;
     }

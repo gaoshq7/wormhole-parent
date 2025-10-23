@@ -1,8 +1,11 @@
 package io.github.gaoshq7;
 
+import cn.hutool.json.JSONUtil;
+import io.github.gaoshq7.handler.SimpleMsgHandler;
 import io.github.gaoshq7.wormhole.*;
 import io.github.gaoshq7.wormhole.protocol.AuditObserver;
 import io.github.gaoshq7.wormhole.protocol.ScriptExecutor;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -21,40 +24,39 @@ public class WormholeClientTest {
     public void test01(){
         try {
             WormholeFactory<ScriptExecutor> factory = Wormhole.getFactory("script");
-            ScriptExecutor executor = factory.create(new Connection("127.0.0.1", 8080));
-            HashMap<String, Object> argMap = new HashMap<>();
-            argMap.put("name", "测试");
-            Integer exitCode = executor.execute("test.sh", new CommandHandler() {
-                @Override
-                public void id(String id) {
-                    System.out.println(id);
-                }
-
-                @Override
-                public void line(String line) {
-                    System.out.println(line);
-                }
-            }, argMap);
+            ScriptExecutor executor = factory.create(new Connection("127.0.0.1", 8080, "YWRtaW46YWRtaW4xMjM0QHN1Z29u"));
+            ExecutorContext context = getExecutorContext();
+            Integer exitCode = executor.execute(context);
             System.out.println(exitCode);
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
+    private static @NotNull ExecutorContext getExecutorContext() {
+        HashMap<String, Object> argMap = new HashMap<>();
+        argMap.put("name", "测试");
+        CommandHandler commandHandler = new CommandHandler() {
+            @Override
+            public void id(String id) {
+                System.out.println(id);
+            }
+
+            @Override
+            public void line(String line) {
+                System.out.print(line);
+            }
+        };
+        return new ExecutorContext("test.sh", argMap, commandHandler, new SimpleMsgHandler());
+    }
+
     @Test
     public void test02(){
         try {
             WormholeFactory<AuditObserver> factory = Wormhole.getFactory("audit");
-            AuditObserver observer = factory.create(new Connection("127.0.0.1", 8080));
+            AuditObserver observer = factory.create(new Connection("127.0.0.1", 8080, "YWRtaW46YWRtaW4xMjM0QHN1Z29u"));
             AuditMsg auditMsg = observer.audit(36);
-            System.out.println("-------------状态-------------");
-            System.out.println(auditMsg.getStatus());
-            System.out.println("-------------命令-------------");
-            System.out.println(auditMsg.getCommand());
-            System.out.println("-------------日志-------------");
-            System.out.println(auditMsg.getLog());
-            System.out.println("-------------状态码-------------");
-            System.out.println(auditMsg.getCode());
+            System.out.println(JSONUtil.toJsonPrettyStr(auditMsg));
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }

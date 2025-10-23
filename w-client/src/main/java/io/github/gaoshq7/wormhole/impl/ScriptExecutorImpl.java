@@ -1,10 +1,8 @@
 package io.github.gaoshq7.wormhole.impl;
 
 import io.github.gaoshq7.handler.ExecutorHttpClient;
-import io.github.gaoshq7.wormhole.CommandHandler;
+import io.github.gaoshq7.wormhole.ExecutorContext;
 import io.github.gaoshq7.wormhole.protocol.ScriptExecutor;
-
-import java.util.Map;
 
 /**
  * Project : wormhole-parent
@@ -22,26 +20,26 @@ public class ScriptExecutorImpl implements ScriptExecutor {
 
     private final ExecutorHttpClient client;
 
-    public ScriptExecutorImpl(String hostname, int port) {
+    public ScriptExecutorImpl(String hostname, int port, String token) {
         this.hostname = hostname;
         this.port = port;
-        this.client = new ExecutorHttpClient(hostname, port);
+        this.client = new ExecutorHttpClient(hostname, port, token);
     }
 
     @Override
-    public Integer execute(String script, CommandHandler handler, Map<String, Object> args) {
+    public Integer execute(ExecutorContext context) {
         // 执行start接口
         String executorId;
         try {
-            executorId = client.getExecutorId(script, args);
+            executorId = client.getExecutorId(context.getScript(), context.getArgs());
         }catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
-        if (handler != null) {
-            handler.id(executorId);
+        if (context.getCommandHandler() != null) {
+            context.getCommandHandler().id(executorId);
         }
         // 执行websocket接口，接受数据, 数据传入handler
-        client.executeWebsocket(executorId, handler);
+        client.executeWebsocket(executorId, context.getCommandHandler(), context.getMsgHandler());
         // 执行log接口，查询脚本执行状态
         return client.executeLog(executorId);
     }

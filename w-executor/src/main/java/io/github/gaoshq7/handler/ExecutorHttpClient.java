@@ -3,10 +3,12 @@ package io.github.gaoshq7.handler;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import io.github.gaoshq7.wormhole.CommandHandler;
+import io.github.gaoshq7.wormhole.WsMsgHandler;
 import okhttp3.*;
 
 import java.io.*;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -21,9 +23,12 @@ public class ExecutorHttpClient {
 
     private final int port;
 
-    public ExecutorHttpClient(String hostname, int port) {
+    private final String token;
+
+    public ExecutorHttpClient(String hostname, int port, String token) {
         this.hostname = hostname;
         this.port = port;
+        this.token = token;
     }
 
     /**
@@ -47,6 +52,7 @@ public class ExecutorHttpClient {
         // 构造请求
         Request request = new Request.Builder()
                 .url(url)
+                .addHeader("Authorization", "Basic " + token)
                 .post(requestBody)
                 .build();
         // 执行请求并处理响应
@@ -70,11 +76,13 @@ public class ExecutorHttpClient {
      * @Author : syu
      * @Date : 2025/10/17
      */
-    public void executeWebsocket(String executorId, CommandHandler handler){
+    public void executeWebsocket(String executorId, CommandHandler handler, WsMsgHandler msgHandler){
         try {
             String str = "ws://" + hostname + ":" + port + "/executions/io/" + executorId;
             URI uri = new URI(str);
-            SimpleWsReceiver simpleWsReceiver = new SimpleWsReceiver(uri, handler);
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", "Basic " + token);
+            SimpleWsReceiver simpleWsReceiver = new SimpleWsReceiver(uri, handler, msgHandler, headers);
             simpleWsReceiver.connectBlocking();
             simpleWsReceiver.awaitClose();
             // close之后执行cleanup
@@ -98,6 +106,7 @@ public class ExecutorHttpClient {
         // 构造请求
         Request request = new Request.Builder()
                 .url(url)
+                .addHeader("Authorization", "Basic " + token)
                 .post(emptyBody)
                 .build();
         // 执行请求
@@ -122,6 +131,7 @@ public class ExecutorHttpClient {
         String url = "http://" + hostname + ":" + port + "/history/execution_log/long/" + executorId;
         Request request = new Request.Builder()
                 .url(url)
+                .addHeader("Authorization", "Basic " + token)
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {

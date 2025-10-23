@@ -25,7 +25,7 @@ public class AuditObserverFactory extends WormholeFactory<AuditObserver> {
         } catch (IOException e) {
             throw new RuntimeException(connection.getHostname()+"的 wormhole 服务不可用!");
         }
-        return new AuditObserverImpl(connection.getHostname(), connection.getPort());
+        return new AuditObserverImpl(connection.getHostname(), connection.getPort(), connection.getToken());
     }
 
 }

@@ -22,10 +22,10 @@ public class AuditObserverImpl implements AuditObserver {
 
     private final AuditHttpClient client;
 
-    public AuditObserverImpl(String hostname, int port) {
+    public AuditObserverImpl(String hostname, int port, String token) {
         this.hostname = hostname;
         this.port = port;
-        this.client = new AuditHttpClient(hostname, port);
+        this.client = new AuditHttpClient(hostname, port, token);
     }
 
     @Override

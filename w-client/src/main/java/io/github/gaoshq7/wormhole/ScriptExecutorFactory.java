@@ -25,7 +25,7 @@ public class ScriptExecutorFactory extends WormholeFactory<ScriptExecutor> {
         } catch (IOException e) {
             throw new RuntimeException(connection.getHostname()+"的 wormhole 服务不可用!");
         }
-        return new ScriptExecutorImpl(connection.getHostname(), connection.getPort());
+        return new ScriptExecutorImpl(connection.getHostname(), connection.getPort(), connection.getToken());
     }
 
 }

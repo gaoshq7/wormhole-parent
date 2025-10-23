@@ -23,4 +23,6 @@ public class Connection {
 
     private Integer port;
 
+    private String token;
+
 }
