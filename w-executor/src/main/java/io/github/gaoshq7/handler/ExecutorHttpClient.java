@@ -52,7 +52,7 @@ public class ExecutorHttpClient {
         // 构造请求
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Basic " + token)
+                .addHeader("Authorization", token)
                 .post(requestBody)
                 .build();
         // 执行请求并处理响应
@@ -81,7 +81,7 @@ public class ExecutorHttpClient {
             String str = "ws://" + hostname + ":" + port + "/executions/io/" + executorId;
             URI uri = new URI(str);
             Map<String, String> headers = new HashMap<>();
-            headers.put("Authorization", "Basic " + token);
+            headers.put("Authorization", token);
             SimpleWsReceiver simpleWsReceiver = new SimpleWsReceiver(uri, handler, msgHandler, headers);
             simpleWsReceiver.connectBlocking();
             simpleWsReceiver.awaitClose();
@@ -106,7 +106,7 @@ public class ExecutorHttpClient {
         // 构造请求
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Basic " + token)
+                .addHeader("Authorization", token)
                 .post(emptyBody)
                 .build();
         // 执行请求
@@ -131,7 +131,7 @@ public class ExecutorHttpClient {
         String url = "http://" + hostname + ":" + port + "/history/execution_log/long/" + executorId;
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Basic " + token)
+                .addHeader("Authorization", token)
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {

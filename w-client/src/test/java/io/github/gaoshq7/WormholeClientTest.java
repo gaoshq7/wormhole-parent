@@ -24,7 +24,8 @@ public class WormholeClientTest {
     public void test01(){
         try {
             WormholeFactory<ScriptExecutor> factory = Wormhole.getFactory("script");
-            ScriptExecutor executor = factory.create(new Connection("127.0.0.1", 8080, "YWRtaW46YWRtaW4xMjM0QHN1Z29u"));
+//            ScriptExecutor executor = factory.create(new Connection("127.0.0.1", 8080, "Basic YWRtaW46YWRtaW4xMjM0QHN1Z29u"));
+            ScriptExecutor executor = factory.create(new Connection("127.0.0.1", 8080, "admin", "admin1234@sugon"));
             ExecutorContext context = getExecutorContext();
             Integer exitCode = executor.execute(context);
             System.out.println(exitCode);
@@ -54,7 +55,7 @@ public class WormholeClientTest {
     public void test02(){
         try {
             WormholeFactory<AuditObserver> factory = Wormhole.getFactory("audit");
-            AuditObserver observer = factory.create(new Connection("127.0.0.1", 8080, "YWRtaW46YWRtaW4xMjM0QHN1Z29u"));
+            AuditObserver observer = factory.create(new Connection("127.0.0.1", 8080, "Basic YWRtaW46YWRtaW4xMjM0QHN1Z29u"));
             AuditMsg auditMsg = observer.audit(36);
             System.out.println(JSONUtil.toJsonPrettyStr(auditMsg));
         }catch (Exception e) {

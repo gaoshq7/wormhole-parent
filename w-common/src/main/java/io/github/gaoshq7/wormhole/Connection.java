@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 /**
  * Project : wormhole-parent
  * Class : io.github.gaoshq7.wormhole.Connection
@@ -16,7 +19,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Connection {
 
     private String hostname;
@@ -24,5 +26,22 @@ public class Connection {
     private Integer port;
 
     private String token;
+
+    private String username;
+
+    private String password;
+
+    public Connection(String hostname, int port, String token) {
+        this.hostname = hostname;
+        this.port = port;
+        this.token = token;
+    }
+
+    public Connection(String hostname, int port, String username, String password) {
+        this.hostname = hostname;
+        this.port = port;
+        this.token = "Basic " + Base64.getEncoder()
+                .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+    }
 
 }

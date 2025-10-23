@@ -38,7 +38,7 @@ public class AuditHttpClient {
         String url = "http://" + hostname + ":" + port + "/history/execution_log/long/" + executorId;
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Basic " + token)
+                .addHeader("Authorization", token)
                 .get()
                 .build();
         try (Response response = client.newCall(request).execute()) {
